@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   minWidth="955" minHeight="600" creationComplete="initApp();" currentState="screenoff">
+	<fx:Style source="BriseGlace.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.rpc.events.ResultEvent;
+
+
+			
+			private function mouseDownListener (e:MouseEvent):void {
+				if(currentState == "screenoff")
+					currentState = "start";
+				//Alert.show("The primary mouse button was pressed.");
+			}
+			
+			private function lunchTheme(text:String):void
+			{
+				service.send({type:"start", key:text}); // your service will receive the variable 'search' with your string
+				currentState = text;
+			}
+			
+			private function resultHandler(e:ResultEvent):void
+			{
+				var data:Object = e.result;
+				// do whatever else here
+			}
+			
+			private function initApp():void {
+				FlexGlobals.topLevelApplication.addEventListener(MouseEvent.MOUSE_UP, mouseDownListener);
+
+			}
+			
+			private function onBack(e:Event = null):void {
+				if(currentState == "start")
+					currentState = "screenoff";
+				else
+					currentState = "start";
+					
+				
+			}
+			
+
+			
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="start"/>
+		<s:State name="cuisine"/>
+		<s:State name="taxidermie"/>
+		<s:State name="r12"/>
+		<s:State name="voyage"/>
+		<s:State name="screenoff"/>
+	</s:states>
+	
+	<fx:Declarations>
+		<s:HTTPService id="service" method="POST" url="http://172.92.0.79/BriseGlace/addDiscussion.php" result="resultHandler" />
+	</fx:Declarations>
+	
+	
+	
+	<s:Image includeIn="cuisine,start" left="50" top="50" click="lunchTheme('cuisine')"
+			 source="assets/recettes-classiques.jpg"
+			 left.cuisine="50" right.cuisine="50" top.cuisine="50" bottom.cuisine="50"
+			 source.cuisine="assets/winter.jpg"
+			 width.start="40%" height.start="40%" source.start="assets/winter.jpg"/>
+	
+	<s:Image includeIn="voyage,start" right="50" bottom="50" click="lunchTheme('voyage')"
+			 source="assets/voyage.jpg"
+			 width.start="40%" height.start="40%"
+			 left.voyage="50" right.voyage="50" top.voyage="50" bottom.voyage="50"/>
+	
+	<s:Image includeIn="r12,start" left="50" bottom="50" click="lunchTheme('r12')"
+			 source="assets/r12.jpg"
+			 left.r12="50" right.r12="50" top.r12="50" bottom.r12="50"
+			 width.start="40%" height.start="40%"/>
+	
+	<s:Image includeIn="start,taxidermie" right="50" top="50" click="lunchTheme('taxidermie')"
+			 source="assets/taxidermie.jpg"
+			 width.start="40%" height.start="40%" source.start="assets/taxidermie.png"
+			 left.taxidermie="50" right.taxidermie="50" top.taxidermie="50" bottom.taxidermie="50"
+			 source.taxidermie="assets/taxidermie.png"/>
+	
+	<s:Button includeIn="cuisine,r12,taxidermie,voyage,start" bottom="10" label="retour"
+			  click="onBack()" horizontalCenter="0">
+	</s:Button>
+	<s:Label includeIn="screenoff" fontSize="36" horizontalCenter="0" text="De quoi veux-tu parler ?"
+			 verticalCenter="0"/>
+	<s:Label includeIn="start" left="50" width="40%" text="Winter is coming" textAlign="center"
+			 verticalCenter="-14"/>
+	<s:Label includeIn="start" left="50" bottom="25" width="40%" text="Pimp my R12"
+			 textAlign="center"/>
+	<s:Label includeIn="start" right="50" width="40%" text="Taxidermie" textAlign="center"
+			 verticalCenter="-17"/>
+	<s:Label includeIn="start" right="50" bottom="26" width="40%" text="Voyage" textAlign="center"/>
+	
+</s:Application>

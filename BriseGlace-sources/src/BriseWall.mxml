@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:ns1="*"
+			   width="100%" height="100%" backgroundColor="#000000" creationComplete="initApp()">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.effects.Blur;
+			import mx.effects.Move;
+			import mx.effects.Tween;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.osmf.events.TimeEvent;
+			
+			import spark.effects.Fade;
+			import spark.effects.Rotate;
+			
+			public var data : Array;
+			
+			[Bindable]
+			public var dataText:String;
+
+			private var timer:Timer;
+			
+			public var currentTheme:String = "closed";
+			public var currentTopicImgUrl:String;
+			
+			public var themeOpening:Boolean = true;
+			
+			private function resultHandler(e:ResultEvent):void
+			{
+				data = JSON.parse(e.result.toString()) as Array;
+				
+				updateTheme();
+			
+				updateTopic();
+				
+				//dataText = e.result.toString()
+					
+				/*var arElt:Array = data as Array;
+				
+				var lastElt =  arElt[arElt.length-1] as Object;
+				
+				//getLastTheme();
+
+				
+				createItem(lastElt["key"], lastElt["imgUrl"]);*/
+				
+				
+				
+				/*timer = new Timer(1000);
+				timer.addEventListener(TimerEvent.TIMER, timer_timer);
+				timer.start();
+				timer.r*/
+				
+				// do whatever else here
+			}
+			
+			private function updateTheme()
+			{
+				if(getLastTheme() != currentTheme)
+					{
+						
+						exitCurrentTheme();
+					}
+				
+			}
+
+			private function updateTopic()
+			{
+				var lastTopicInData:Object = getLastTopic();
+				
+				if(lastTopicInData != null)
+				{
+					if(lastTopicInData["imgUrl"] != currentTopicImgUrl)
+					{
+						currentTopicImgUrl = lastTopicInData["imgUrl"];
+						if(isLastDiscussionOpen())
+							createItem(lastTopicInData["key"], lastTopicInData["imgUrl"]);
+					}
+				}
+			}
+			
+			
+
+			
+			private function openVideoTheme(){
+				if(currentTheme == "voyage")
+					videoBack.source = "http://localhost/BriseGlace/resources/TH-02-TitreEtIllust-02.mp4";
+				if(currentTheme == "taxidermie")
+					videoBack.source = "http://localhost/BriseGlace/resources/TH-01-TitreEtIllust-02.mp4";
+				if(currentTheme == "r12")
+					videoBack.source = "http://localhost/BriseGlace/resources/TH-04-TitreEtIllust.mp4";
+				if(currentTheme == "cuisine")
+					videoBack.source = "http://localhost/BriseGlace/resources/TH-03-TitreEtIllust-02.mp4";
+				if(currentTheme == "closed")
+					videoBack.source = "http://localhost/BriseGlace/resources/ACCUEIL.mp4";
+			}
+			
+			
+			private function exitCurrentTheme()
+			{
+				if(currentTheme == "closed")
+				{
+					currentTheme = getLastTheme();
+					openVideoTheme();
+					
+				}
+				else
+				{
+					var f:Fade = new Fade(bulles);
+					f.duration = 2000;
+					f.alphaTo = 0;
+					f.play();
+					f.addEventListener(EffectEvent.EFFECT_END, onBullesOff);
+					
+					videoBack.play();
+					
+					currentTheme = getLastTheme();
+				}
+			}
+
+			private function onBullesOff(e:Event):void
+			{
+				while(bulles.numChildren > 0 ){
+					bulles.removeChildAt( 0 );
+				}
+				
+				var f:Fade = new Fade(bulles);
+				f.duration = 3000;
+				f.alphaTo = 1.0;
+				f.play();
+			}
+			
+
+			private function getLastTheme():String
+			{
+				if(isLastDiscussionOpen())
+					return data[data.length-1]["theme"];
+				else
+					return "closed";
+			}
+			
+			
+			private function isLastDiscussionOpen():Boolean
+			{
+				return (data[data.length-1]["open"] == 1);
+			}
+			
+			
+			private function getLastTopic():Object
+			{
+				var eltAr:Array = data[data.length-1]["elements"] as Array;
+				
+				if(eltAr.length == 0)
+					return null;
+				else
+					return eltAr[eltAr.length-1] as Object;
+			}
+			
+			private function createItem(key:String, imgUrl:String)
+			{
+				var newItem:BriseItem = new BriseItem();
+				newItem.dataLabel = key;
+				newItem.dataImageUrl = imgUrl;
+				bulles.addChild(newItem);
+				newItem.y = this.height;
+				newItem.x = (this.width / 2)-(newItem.width/2)+(Math.random()-0.5)*500;
+				newItem.rotation = (Math.random()-0.5)*30;
+				
+				
+				newItem.addEventListener(FlexEvent.CREATION_COMPLETE, onItemComplete);
+				
+			}
+			
+			private function onItemComplete(e:FlexEvent)
+			{
+				var newItem:BriseItem = e.currentTarget as BriseItem;
+				
+				//var t:Tween = new Tween(newItem.y, this.height + 20, -200, 20,-1,null,null);
+				
+				var randX:Number = Math.random(); 
+				
+				var randY:Number = Math.random(); 
+				 
+	
+				if(randX > 0.25 && randX < 0.75)
+					randY = randY/2;
+					
+				var finalX:Number = randX * (this.width - newItem.width);
+				var finalY:Number = randY * (this.height - newItem.height);
+				
+				var m:Move = new Move(newItem);
+				m.yTo = finalY;
+				m.xTo = finalX;
+				m.xBy = (Math.random()-0.5)*200;
+				m.duration = 10000;
+				m.play();
+				
+				
+				
+				var r:Rotate = new Rotate(newItem);
+				r.angleBy = (Math.random()-0.5)*60;
+				r.duration = 10000;
+				r.play();
+				
+				/*var b:Blur = new Blur(newItem);
+				b.duration = 100000;
+				b.blurYFrom = 0.0;
+				b.blurXFrom = 0.0;
+				b.blurXTo = 5;
+				b.blurYTo = 5;
+				b.play();*/
+			}
+			
+			private function initApp():void {
+				
+				timer = new Timer(1000,0);
+				timer.addEventListener(TimerEvent.TIMER, timer_timer);
+				timer.start();
+			
+				service.send();
+				
+			}
+			
+			private function timer_timer(evt:TimerEvent):void {
+				service.send();
+			}
+
+			
+			
+			protected function videoBack_currentTimeChangeHandler(event:TimeEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(event.time > 18 && themeOpening && currentTheme != "closed")
+				{
+					videoBack.pause();
+					
+					themeOpening = false;
+				}
+			}
+			
+			protected function videoBack_completeHandler(event:TimeEvent):void
+			{
+				// TODO Auto-generated method stub
+				themeOpening = true;
+				openVideoTheme();
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:HTTPService id="service" method="POST" url="http://localhost/BriseGlace/data.json" result="resultHandler(event)" />
+	</fx:Declarations>
+	<s:VideoDisplay id="videoBack" left="0" right="0" bottom="0" source="http://localhost/BriseGlace/resources/ACCUEIL.mp4" autoRewind="false" currentTimeChange="videoBack_currentTimeChangeHandler(event)" complete="videoBack_completeHandler(event)"/>
+	<mx:UIComponent id="bulles" left="0" right="0" top="0" bottom="0" >
+		
+	</mx:UIComponent>
+</s:Application>
